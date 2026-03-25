@@ -13,7 +13,8 @@ namespace TelegramProxy.Models
     {
         public int LocalPort { get; set; } = 8080;
         public string ActiveDcName { get; set; } = "DC2";
-        public bool UseCloudflare { get; set; } = false;
+        public string SocksUsername { get; set; } = "admin";
+        public string SocksPassword { get; set; } = "TgProxy2026!";
         
         public List<TelegramDc> Datacenters { get; set; } = new()
         {

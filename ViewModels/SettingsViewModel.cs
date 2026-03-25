@@ -26,10 +26,16 @@ namespace TelegramProxy.ViewModels
             set { _settingsManager.Current.LocalPort = value; OnPropertyChanged(); }
         }
 
-        public bool UseCloudflare
+        public string SocksUsername
         {
-            get => _settingsManager.Current.UseCloudflare;
-            set { _settingsManager.Current.UseCloudflare = value; OnPropertyChanged(); }
+            get => _settingsManager.Current.SocksUsername;
+            set { _settingsManager.Current.SocksUsername = value; OnPropertyChanged(); }
+        }
+        
+        public string SocksPassword
+        {
+            get => _settingsManager.Current.SocksPassword;
+            set { _settingsManager.Current.SocksPassword = value; OnPropertyChanged(); }
         }
 
         public TelegramDc SelectedDc

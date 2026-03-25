@@ -12,7 +12,6 @@ namespace TelegramProxy
     {
         private ISettingsManager? _settingsManager;
         private IProxyEngine? _proxyEngine;
-        private ICloudflareService? _cloudflareService;
         private MainViewModel? _mainViewModel;
         private TaskbarIcon? _notifyIcon;
 
@@ -21,10 +20,9 @@ namespace TelegramProxy
             base.OnStartup(e);
 
             _settingsManager = new SettingsManager();
-            _proxyEngine = new ProxyEngine();
-            _cloudflareService = new CloudflareService();
+            _proxyEngine = new ProxyEngine(_settingsManager);
 
-            _mainViewModel = new MainViewModel(_proxyEngine, _cloudflareService, _settingsManager);
+            _mainViewModel = new MainViewModel(_proxyEngine, _settingsManager);
 
             var trayMenu = new ContextMenu();
             var showMenuItem = new MenuItem { Header = "Show Dashboard" };
@@ -39,7 +37,7 @@ namespace TelegramProxy
 
             _notifyIcon = new TaskbarIcon
             {
-                ToolTipText = "Telegram Bridge Active",
+                ToolTipText = "Telegram SOCKS5 Proxy Active",
                 ContextMenu = trayMenu
             };
             _notifyIcon.TrayMouseDoubleClick += (s, ev) => MainWindow?.Show();

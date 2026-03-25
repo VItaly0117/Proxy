@@ -1,6 +1,8 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Net;
+using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -17,7 +19,6 @@ namespace TelegramProxy.ViewModels
     public class MainViewModel : ViewModelBase
     {
         private readonly IProxyEngine _proxyEngine;
-        private readonly ICloudflareService _cloudflareService;
         private readonly ISettingsManager _settingsManager;
         private Timer? _uiTimer;
         
@@ -26,10 +27,9 @@ namespace TelegramProxy.ViewModels
         
         public SettingsViewModel SettingsVM { get; }
 
-        public MainViewModel(IProxyEngine proxyEngine, ICloudflareService cloudflareService, ISettingsManager settingsManager)
+        public MainViewModel(IProxyEngine proxyEngine, ISettingsManager settingsManager)
         {
             _proxyEngine = proxyEngine;
-            _cloudflareService = cloudflareService;
             _settingsManager = settingsManager;
             SettingsVM = new SettingsViewModel(settingsManager);
 
@@ -45,7 +45,12 @@ namespace TelegramProxy.ViewModels
                 new LineSeries<double> { Values = DownloadSeriesList, Name = "Down (KB/s)", Stroke = new SolidColorPaint(new SKColor(46, 204, 113)) { StrokeThickness = 3 }, GeometrySize = 0, Fill = null }
             };
 
-            ConnectionLink = $"ws://127.0.0.1:{_settingsManager.Current.LocalPort}";
+            UpdateConnectionLink();
+        }
+
+        private void UpdateConnectionLink()
+        {
+            ConnectionLink = $"SOCKS5: [Твой_IP]:{_settingsManager.Current.LocalPort} | User: {_settingsManager.Current.SocksUsername} | Pass: {_settingsManager.Current.SocksPassword}";
         }
 
         public ObservableCollection<double> UploadSeriesList { get; }
@@ -69,29 +74,16 @@ namespace TelegramProxy.ViewModels
             Logs.Clear();
             SettingsVM.Save();
             
-            var targetDc = SettingsVM.SelectedDc;
-            Log($"Starting proxy on ws://127.0.0.1:{SettingsVM.LocalPort} -> {targetDc.Name} ({targetDc.Ip}:{targetDc.Port})");
+            Log($"Starting SOCKS5 proxy on 0.0.0.0:{SettingsVM.LocalPort} (Auth: Enabled)");
 
             _proxyEngine.LogMessage += Log;
-            _proxyEngine.Start(SettingsVM.LocalPort, targetDc.Ip, targetDc.Port);
+            _proxyEngine.Start();
             
             _ = MonitorTrafficAsync();
             _uiTimer = new Timer(UpdateChartTimerCallback, null, 1000, 1000);
 
-            ConnectionLink = $"ws://127.0.0.1:{SettingsVM.LocalPort}";
-
-            if (SettingsVM.UseCloudflare)
-            {
-                _cloudflareService.LogMessage += Log;
-                _cloudflareService.UrlObtained += url =>
-                {
-                    Application.Current?.Dispatcher.InvokeAsync(() => {
-                        ConnectionLink = url.Replace("https://", "wss://");
-                        Log($"Cloudflare Active: {ConnectionLink}");
-                    });
-                };
-                await _cloudflareService.StartAsync(SettingsVM.LocalPort, CancellationToken.None);
-            }
+            UpdateConnectionLink();
+            await Task.CompletedTask;
         }
 
         private async Task MonitorTrafficAsync()
@@ -135,8 +127,6 @@ namespace TelegramProxy.ViewModels
             await _proxyEngine.StopAsync(TimeSpan.FromSeconds(5));
             _proxyEngine.LogMessage -= Log;
             
-            await _cloudflareService.StopAsync();
-            _cloudflareService.LogMessage -= Log;
             Log("Complete halting applied on all services safely.");
         }
 

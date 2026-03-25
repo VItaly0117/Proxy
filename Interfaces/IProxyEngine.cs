@@ -10,7 +10,7 @@ namespace TelegramProxy.Interfaces
     {
         ChannelReader<TrafficEvent> TrafficReader { get; }
         event Action<string>? LogMessage;
-        void Start(int localPort, string targetIp, int targetPort);
+        void Start();
         Task StopAsync(TimeSpan timeout);
     }
 }

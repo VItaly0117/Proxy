@@ -37,7 +37,7 @@
                         <TextBlock Text="Target Relay Node" Foreground="#AAAAAA" Margin="0,0,0,5"/>
                         <ComboBox ItemsSource="{Binding SettingsVM.Datacenters}" SelectedItem="{Binding SettingsVM.SelectedDc}" DisplayMemberPath="Name" Width="140" Height="26" Background="#2D2D30" Foreground="White"/>
                     </StackPanel>
-                    <CheckBox Content="Route via Cloudflare Tunnel" IsChecked="{Binding SettingsVM.UseCloudflare}" Foreground="White" VerticalAlignment="Center" Margin="0,0,25,0"/>
+
                     <Button Content="Save Setup" Command="{Binding SettingsVM.SaveCommand}" Width="100" Height="26" Background="#3E3E42" Foreground="White" BorderThickness="0" Cursor="Hand" VerticalAlignment="Bottom"/>
                 </WrapPanel>
             </StackPanel>
